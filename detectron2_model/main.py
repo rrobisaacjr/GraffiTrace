@@ -19,12 +19,15 @@ def setup_cfg():
     cfg.DATASETS.TEST = ("graffiti_validation",)
     cfg.DATALOADER.NUM_WORKERS = 4
 
-    # Solver (Training Parameters)
-    cfg.SOLVER.IMS_PER_BATCH = 4  # Increased batch size
-    cfg.SOLVER.BASE_LR = 0.0005  # Reduced learning rate
+    # Solver (Training Parameters) - Updated with Lower Learning Rate
+    cfg.SOLVER.IMS_PER_BATCH = 4  # Keep batch size (VRAM limit)
+    cfg.SOLVER.ACCUMULATE_GRAD_ITER = 4  # Simulating batch size 16 for better convergence
+    cfg.SOLVER.BASE_LR = 0.0001  # Lower learning rate for smoother convergence (adjust as needed)
     cfg.SOLVER.MAX_ITER = 10000
-    cfg.SOLVER.STEPS = (6000, 8000)  # Added learning rate decay
-    cfg.SOLVER.GAMMA = 0.1
+    cfg.SOLVER.STEPS = (3000, 6000)  # Earlier decay for smoother learning
+    cfg.SOLVER.GAMMA = 0.5  # Less aggressive LR decay
+    cfg.SOLVER.CHECKPOINT_PERIOD = 2000
+    
 
     # Model Settings
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1  # Only one class: graffiti
