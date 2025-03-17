@@ -1,6 +1,5 @@
 datasets/Train/images/*
 datasets/Validation/images/*
-first_train_output/*.pth
-second_train_output/*.pth
-output/*.pth
-output_resume/*.pth
+Training Phase/first_train_output/*.pth
+Training Phase/second_train_output/*.pth
+Training Phase/third_train_output/*.pth
