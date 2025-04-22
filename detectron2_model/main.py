@@ -13,6 +13,7 @@ def setup_cfg():
     cfg.MODEL.DEVICE = "cuda"  # Use "cpu" if no GPU available
     cfg.merge_from_file(model_zoo.get_config_file("COCO-Detection/faster_rcnn_R_101_FPN_3x.yaml"))
     cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-Detection/faster_rcnn_R_101_FPN_3x.yaml")
+    cfg.DATALOADER.FILTER_EMPTY_ANNOTATIONS = False
     
     # Dataset and DataLoader
     cfg.DATASETS.TRAIN = ("graffiti_train",)
@@ -31,7 +32,7 @@ def setup_cfg():
 
     # Model Settings
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1  # Only one class: graffiti
-    cfg.OUTPUT_DIR = "./output"
+    cfg.OUTPUT_DIR = "./fourth_train_output"
 
     return cfg
 

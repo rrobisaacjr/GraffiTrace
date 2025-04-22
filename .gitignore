@@ -3,4 +3,6 @@ datasets/Validation/images/*
 Training Phase/first_train_output/*.pth
 Training Phase/second_train_output/*.pth
 Training Phase/third_train_output/*.pth
+Training Phase/fourth_train_output/*.pth
 Validation Phase/output_1/visualized_predictions (model_000999)/*
+Validation Phase/output_1/instances_predictions.pth

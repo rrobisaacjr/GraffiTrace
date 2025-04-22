@@ -1,5 +1,6 @@
 {
     "python.analysis.extraPaths": [
-        "./detectron2_model/detectron2"
+        "./detectron2_model/detectron2",
+        "./detectron2_model"
     ]
 }
