@@ -1,0 +1,29 @@
+Running evaluation...
+Loading and preparing results...
+DONE (t=0.01s)
+creating index...
+index created!
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.124
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.249
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.111
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.005
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.083
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.317
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.050
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.170
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.220
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.006
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.183
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.501
+
+
+Evaluation results:
+ OrderedDict([('bbox', {'AP': 12.401780024227373, 'AP50': 24.921020109465168, 'AP75': 11.096762774949061, 'APs': 0.540723007300045, 'APm': 8.327424554504752, 'APl': 31.695178893865698})])
+
+--- Key Evaluation Metrics ---
+Average Precision (AP): 12.4018
+AP at IoU=0.50 (AP50): 24.9210
+AP at IoU=0.75 (AP75): 11.0968
+
+
+The model achieved an Average Precision (AP) of 12.4%, with AP50 at 24.9% and Average Recall (AR@100) at 22.0% on the validation dataset. While modest, these results confirm that the model is capable of identifying graffiti in urban street-view scenes. Given the constrained timeline and the limited number of local training samples, the current scores reflect a proof-of-concept phase. Further improvements are expected with additional local data collection, dataset balancing, and extended training cycles.

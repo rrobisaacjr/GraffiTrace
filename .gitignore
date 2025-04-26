@@ -6,3 +6,6 @@ Training Phase/third_train_output/*.pth
 Training Phase/fourth_train_output/*.pth
 Validation Phase/output_1/visualized_predictions (model_000999)/*
 Validation Phase/output_1/instances_predictions.pth
+Validation Phase/second_validation/eval_output/vis_preds/*
+Validation Phase/second_validation/eval_output/*.pth
+Validation Phase/second_validation/*.pth

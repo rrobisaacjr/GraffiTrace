@@ -5,7 +5,7 @@ import os
 
 
 # Load data from the provided snippet
-file_path = "./Training Phase/third_train_output/metrics.json"  # Update with correct path
+file_path = "./Training Phase/fourth_train_output/metrics.json"  # Update with correct path
 
 iterations = []
 total_losses = []
@@ -33,16 +33,20 @@ plt.plot(iterations, total_losses, linestyle='-', alpha=0.5, label="Total Loss")
 plt.plot(iterations_ma, moving_avg, linestyle='-', color='red', label="Moving Average (20)")
 
 # Add vertical lines for checkpoints
-checkpoint_iters = [1999, 3999, 5999, 7999]
+checkpoint_iters = [1999, 3999, 5999, 7999, 9999]
 for ckpt in checkpoint_iters:
     plt.axvline(x=ckpt, color='blue', linestyle='--', alpha=0.7, label=f"Checkpoints" if ckpt == 1999 else None)
 
 # Labels, title, and legend
-plt.xlabel("Iteration")
-plt.ylabel("Total Loss")
+plt.xlabel("Iteration", fontsize=14)  # Increased font size
+plt.ylabel("Total Loss", fontsize=14)   # Increased font size
 plt.title("Total Loss per Iteration with Moving Average (20) and Checkpoints")
 plt.legend()
 plt.grid(True)
+
+# Increase font size of tick labels
+plt.xticks(fontsize=12)  # Adjust the size as needed
+plt.yticks(fontsize=12)  # Adjust the size as needed
 
 # Save the image
 plt.savefig("total_loss_plot.png", dpi=300, bbox_inches='tight')
