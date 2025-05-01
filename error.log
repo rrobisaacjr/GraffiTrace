@@ -1,0 +1,16 @@
+
+[2025-05-02 02:28:58] Traceback (most recent call last):
+  File "d:/Downloads/SP/graffitrace/Deployment Phase/report_frame.py", line 288, in <module>
+    report_frame = ReportFrame(root)
+  File "d:/Downloads/SP/graffitrace/Deployment Phase/report_frame.py", line 49, in __init__
+    self.map_browser = cef.CTkBrowser(self.map_frame)
+AttributeError: module 'cefpython3.cefpython_py38' has no attribute 'CTkBrowser'
+
+
+[2025-05-02 02:30:44] Traceback (most recent call last):
+  File "d:/Downloads/SP/graffitrace/Deployment Phase/report_frame.py", line 299, in <module>
+    report_frame.create_map(coordinates)
+  File "d:/Downloads/SP/graffitrace/Deployment Phase/report_frame.py", line 112, in create_map
+    self.map_label.configure(text=f"Map saved to {map_filename}.  Open in a web browser.")
+AttributeError: 'ReportFrame' object has no attribute 'map_label'
+
