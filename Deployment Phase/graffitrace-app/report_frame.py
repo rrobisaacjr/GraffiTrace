@@ -34,7 +34,7 @@ class ReportFrame(customtkinter.CTkFrame):
         self.map_frame = customtkinter.CTkFrame(self, fg_color="transparent")
         self.map_frame.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
         self.map_widget = TkinterMapView(self.map_frame, width=800, height=300, corner_radius=0)  # Adjust size as needed
-        self.map_widget.pack(fill="both", expand=True)
+        self.map_widget.pack(fill="both", expand=False)
         self.map_widget.set_position(37.7749, -122.4194)  # Default: San Francisco
         self.map_widget.set_zoom(15)  # reasonable default zoom
 
@@ -43,6 +43,7 @@ class ReportFrame(customtkinter.CTkFrame):
         self.lower_frame.grid(row=1, column=0, padx=20, pady=(0, 20), sticky="nsew")
         self.lower_frame.grid_columnconfigure(0, weight=1)  # Image column
         self.lower_frame.grid_columnconfigure(1, weight=2)  # Details column
+        self.lower_frame.grid_rowconfigure(0, weight=1)
 
         # Image placeholder
         self.image_placeholder_frame = customtkinter.CTkFrame(self.lower_frame, width=200, height=200, fg_color="#383838")  # Adjust size as needed
@@ -57,18 +58,20 @@ class ReportFrame(customtkinter.CTkFrame):
         self.details_frame.grid_columnconfigure(0, weight=1)
         self.details_frame.grid_columnconfigure(1, weight=2)
         
-        # New frame on the right
-        self.right_frame = customtkinter.CTkFrame(self.lower_frame, fg_color="#383838", corner_radius=10, width=50)  # Example color
-        self.right_frame.grid(row=0, column=2, padx=(20, 0), pady=(0, 20), sticky="ns")
-        self.right_frame.grid_columnconfigure(0, weight=1)
-        self.right_frame.grid_rowconfigure(0, weight=1)
-        
-         # Load the custom icon
+        # New frame on the right. Moved to the lower frame.
+        self.right_frame = customtkinter.CTkFrame(self.lower_frame, fg_color="transparent", corner_radius=10)
+        self.right_frame.grid(row=0, column=2, padx=(20, 0), pady=(0, 30), sticky="nsew")
+        self.right_frame.grid_columnconfigure(0, weight=1)  # Ensure the column expands
+        self.right_frame.grid_rowconfigure(0, weight=1)  # Don't give weight to the rows initially.
+        self.right_frame.grid_rowconfigure(1, weight=1)
+        self.right_frame.grid_rowconfigure(2, weight=1)
+
+        # Load the custom icon
         current_path = os.path.dirname(os.path.abspath(__file__))
         random_icon_path = os.path.join(current_path, "assets", "random.png")
         info_icon_path = os.path.join(current_path, "assets", "info.png")
         print_icon_path = os.path.join(current_path, "assets", "print.png")
-        
+
         try:
             self.random_image = Image.open(random_icon_path).resize((30, 30), Image.LANCZOS)
             self.random_icon = ImageTk.PhotoImage(self.random_image)
@@ -83,14 +86,13 @@ class ReportFrame(customtkinter.CTkFrame):
             self.print_icon = None  # Ensure None in case of error
 
         # Create three buttons inside the right frame
-        self.random_button = customtkinter.CTkButton(self.right_frame, text="", width=60, height=60, corner_radius=8, image=self.random_icon, command=self.on_random_button_click)
-        self.random_button.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="nsew")
-
-        self.info_button = customtkinter.CTkButton(self.right_frame, text="", width=60, height=60, corner_radius=8,  image=self.info_icon)
-        self.info_button.grid(row=1, column=0, padx=10, pady=5, sticky="nsew")
-
-        self.print_button = customtkinter.CTkButton(self.right_frame, text="", width=60, height=60, corner_radius=8, image=self.print_icon)
-        self.print_button.grid(row=2, column=0, padx=10, pady=(5, 10), sticky="nsew")
+        self.random_button = customtkinter.CTkButton(self.right_frame, text="", corner_radius=8, image=self.random_icon,
+                                                    command=self.on_random_button_click, width=50, height=60, fg_color="transparent")
+        self.random_button.pack(fill="both", expand=False, pady=(10, 10), padx=15)  # Use pack, fill horizontally, no expansion
+        self.info_button = customtkinter.CTkButton(self.right_frame, text="", corner_radius=8, image=self.info_icon, width=50, height=60, fg_color="transparent")
+        self.info_button.pack(fill="both", expand=False, pady=5, padx=15)
+        self.print_button = customtkinter.CTkButton(self.right_frame, text="", corner_radius=8, image=self.print_icon, width=50, height=60, fg_color="transparent")
+        self.print_button.pack(fill="both", expand=False, pady=(10, 18), padx=15)
 
         # Labels for the details
         label_texts = ["Graffiti Name", "Source File Name", "Place", "Latitude", "Longitude", "Confidence Level"]
@@ -218,9 +220,16 @@ class ReportFrame(customtkinter.CTkFrame):
         self.image_placeholder_label.pack(fill="both", expand=True)
 
         self.details_frame = customtkinter.CTkFrame(self.lower_frame, fg_color="transparent")
-        self.details_frame.grid(row=0, column=1, padx=0, pady=(0, 10), sticky="nsew")
+        self.details_frame.grid(row=0, column=1, padx=0, pady=(0, 5), sticky="nsew")
         self.details_frame.grid_columnconfigure(0, weight=1)
         self.details_frame.grid_columnconfigure(1, weight=2)
+        self.details_frame.grid_rowconfigure(0, weight=1)
+        self.details_frame.grid_rowconfigure(1, weight=1)
+        self.details_frame.grid_rowconfigure(2, weight=1)
+        self.details_frame.grid_rowconfigure(3, weight=1)
+        self.details_frame.grid_rowconfigure(4, weight=1)
+        self.details_frame.grid_rowconfigure(5, weight=1)
+        
 
         # Re-create labels for the details
         label_texts = ["Graffiti Name", "Source File Name", "Place", "Latitude", "Longitude", "Confidence Level"]
@@ -228,9 +237,9 @@ class ReportFrame(customtkinter.CTkFrame):
         self.detail_values = []
         for i, text in enumerate(label_texts):
             label = customtkinter.CTkLabel(self.details_frame, text=text + ":", anchor="w")
-            label.grid(row=i, column=0, padx=10, pady=(5, 5), sticky="ew")
+            label.grid(row=i, column=0, padx=5, pady=(2.5, 2.5), sticky="ew")
             value_label = customtkinter.CTkLabel(self.details_frame, text="", anchor="w")  # Start with empty values
-            value_label.grid(row=i, column=1, padx=10, pady=(5, 5), sticky="ew")
+            value_label.grid(row=i, column=1, padx=10, pady=(2.5, 2.5), sticky="ew")
             self.detail_labels.append(label)
             self.detail_values.append(value_label)
 
@@ -273,8 +282,8 @@ class ReportFrame(customtkinter.CTkFrame):
                 # Calculate aspect ratio
                 aspect_ratio = img.width / img.height
                 # Use the available height (200) to determine the new width
-                new_width = int(200 * aspect_ratio)
-                img.thumbnail((new_width, 200))  # Resize for the placeholder
+                new_width = int(325 * aspect_ratio)
+                img.thumbnail((new_width, 325))  # Resize for the placeholder
                 photo = ImageTk.PhotoImage(img)
 
                 # Create image label
