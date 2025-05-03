@@ -48,7 +48,8 @@ class ReportFrame(customtkinter.CTkFrame):
         # Image placeholder
         self.image_placeholder_frame = customtkinter.CTkFrame(self.lower_frame, width=200, height=200, fg_color="#383838")  # Adjust size as needed
         self.image_placeholder_frame.grid(row=0, column=0, padx=(0, 20), pady=0, sticky="nsew")
-        self.image_placeholder_label = customtkinter.CTkLabel(self.image_placeholder_frame, text_color="white")
+        # self.image_placeholder_frame.grid_configure(padx=100)
+        self.image_placeholder_label = customtkinter.CTkLabel(self.image_placeholder_frame, text_color="white", text="", width=225)
         self.image_placeholder_label.pack(fill="both", expand=True)
         self.image_label = None #keep track of the image label
 
@@ -300,9 +301,11 @@ class ReportFrame(customtkinter.CTkFrame):
             except Exception as e:
                 print(f"Error loading image {image_path}: {e}")
                 self.clear_image_placeholder()  # This will now create a new placeholder if needed.
+                self.image_placeholder_frame.grid_configure(padx=125)
                 self.image_placeholder_label.configure(text="Error loading image")
         else:
             self.clear_image_placeholder()
+            self.image_placeholder_frame.grid_configure(padx=125)
             self.image_placeholder_label.configure(text="Image not found")
 
     def clear_image_placeholder(self):
