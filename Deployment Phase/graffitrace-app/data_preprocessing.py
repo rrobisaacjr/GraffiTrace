@@ -31,7 +31,6 @@ def prepare_directory(base_directory):
     print(f"Created CSV file: {csv_path}")
     return preprocessed_dir  # Return the path to the preprocessed directory
 
-
 def _convert_to_degrees(value):
     """
     Helper function to convert GPS coordinates from degree/minute/second
@@ -49,7 +48,6 @@ def _convert_to_degrees(value):
         return value
 
 
-
 def get_coordinates(gps_info):
     """
     Helper function to extract latitude and longitude from GPSInfo.
@@ -65,7 +63,6 @@ def get_coordinates(gps_info):
         if gps_info[3] == 'W':
             longitude = -longitude
     return latitude, longitude
-
 
 def get_exif_data(img):
     """Extract EXIF data from an image."""
@@ -160,7 +157,6 @@ def process_image(args):
 
 # Increase the decompression bomb limit
 ImageFile.MAX_IMAGE_PIXELS = 200000000
-
 
 
 def rename_preprocessed_images(output_directory):

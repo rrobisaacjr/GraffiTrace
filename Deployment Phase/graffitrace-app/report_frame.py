@@ -12,6 +12,7 @@ except ImportError:
 from tkintermapview import TkinterMapView  # Import the map view
 import tkinter.messagebox  # Import messagebox
 import pandas as pd
+import random
 import warnings  # Import warnings
 
 # Suppress Warnings
@@ -26,6 +27,8 @@ class ReportFrame(customtkinter.CTkFrame):
         self.grid_columnconfigure(0, weight=1)  # Configure the column to expand
         self.grid_rowconfigure(0, weight=1)  # Make the first row expandable for the map
         self.grid_rowconfigure(1, weight=1)  # Make the second row expandable
+        
+        print(self.project_directory)
 
         # Create the TkinterMapView widget to display the map
         self.map_frame = customtkinter.CTkFrame(self, fg_color="transparent")
@@ -60,15 +63,34 @@ class ReportFrame(customtkinter.CTkFrame):
         self.right_frame.grid_columnconfigure(0, weight=1)
         self.right_frame.grid_rowconfigure(0, weight=1)
         
+         # Load the custom icon
+        current_path = os.path.dirname(os.path.abspath(__file__))
+        random_icon_path = os.path.join(current_path, "assets", "random.png")
+        info_icon_path = os.path.join(current_path, "assets", "info.png")
+        print_icon_path = os.path.join(current_path, "assets", "print.png")
+        
+        try:
+            self.random_image = Image.open(random_icon_path).resize((30, 30), Image.LANCZOS)
+            self.random_icon = ImageTk.PhotoImage(self.random_image)
+            self.info_image = Image.open(info_icon_path).resize((30, 30), Image.LANCZOS)
+            self.info_icon = ImageTk.PhotoImage(self.info_image)
+            self.print_image = Image.open(print_icon_path).resize((30, 30), Image.LANCZOS)
+            self.print_icon = ImageTk.PhotoImage(self.print_image)
+        except Exception as e:
+            print(f"Error loading icon: {e}.  Using default marker.")
+            self.random_icon = None  # Ensure None in case of error
+            self.info_icon = None  # Ensure None in case of error
+            self.print_icon = None  # Ensure None in case of error
+
         # Create three buttons inside the right frame
-        self.button1 = customtkinter.CTkButton(self.right_frame, text="", width=60, height=60, corner_radius=8, fg_color="gray")
-        self.button1.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="nsew")
+        self.random_button = customtkinter.CTkButton(self.right_frame, text="", width=60, height=60, corner_radius=8, image=self.random_icon, command=self.on_random_button_click)
+        self.random_button.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="nsew")
 
-        self.button2 = customtkinter.CTkButton(self.right_frame, text="", width=60, height=60, corner_radius=8, fg_color="gray")
-        self.button2.grid(row=1, column=0, padx=10, pady=5, sticky="nsew")
+        self.info_button = customtkinter.CTkButton(self.right_frame, text="", width=60, height=60, corner_radius=8,  image=self.info_icon)
+        self.info_button.grid(row=1, column=0, padx=10, pady=5, sticky="nsew")
 
-        self.button3 = customtkinter.CTkButton(self.right_frame, text="", width=60, height=60, corner_radius=8, fg_color="gray")
-        self.button3.grid(row=2, column=0, padx=10, pady=(5, 10), sticky="nsew")
+        self.print_button = customtkinter.CTkButton(self.right_frame, text="", width=60, height=60, corner_radius=8, image=self.print_icon)
+        self.print_button.grid(row=2, column=0, padx=10, pady=(5, 10), sticky="nsew")
 
         # Labels for the details
         label_texts = ["Graffiti Name", "Source File Name", "Place", "Latitude", "Longitude", "Confidence Level"]
@@ -87,10 +109,14 @@ class ReportFrame(customtkinter.CTkFrame):
         self.coordinates = []
         self.graffiti_data = [] #added
         self.load_data() # Load data in init
+        self.markers = []
         
     def load_data(self):
         """Loads the data"""
         csv_path = os.path.join(self.project_directory, "results", "result.csv")
+        
+        print(csv_path)
+        
         self.load_graffiti_data(csv_path)
 
     def load_graffiti_data(self, csv_path):
@@ -115,6 +141,8 @@ class ReportFrame(customtkinter.CTkFrame):
             self.graffiti_data.dropna(subset=['latitude', 'longitude'], inplace=True)
 
             self.coordinates = list(zip(self.graffiti_data['latitude'], self.graffiti_data['longitude']))
+            
+            self.create_map()
 
         except FileNotFoundError:
             tkinter.messagebox.showerror("Error", f"CSV file not found at {csv_path}")
@@ -163,10 +191,11 @@ class ReportFrame(customtkinter.CTkFrame):
 
     def clear_lower_frame(self):
         """
-        Destroys all widgets in the lower frame.
+        Destroys all widgets in the lower frame, except for self.right_frame and its children.
         """
         for child in self.lower_frame.winfo_children():
-            child.destroy()
+            if child != self.right_frame:  # Skip the right frame
+                child.destroy()
         self.image_label = None
         self.image_placeholder_frame = None
 
@@ -283,6 +312,22 @@ class ReportFrame(customtkinter.CTkFrame):
         self.image_placeholder_label.pack(fill="both", expand=True)
         self.image_placeholder_label.configure(text="")  # Clear any previous text.
 
+    
+    def on_random_button_click(self):
+        """
+        Selects a random graffiti entry, updates the details frame, and zooms the map.
+        """
+        if not self.coordinates:
+            tkinter.messagebox.showinfo("No Data", "No graffiti data available to select.")
+            return
+
+        random_index = random.randint(0, len(self.coordinates) - 1)
+        self.update_details_frame(random_index)
+
+        # Zoom to the selected marker's position.
+        latitude, longitude = self.coordinates[random_index]
+        self.map_widget.set_position(latitude, longitude)
+        self.map_widget.set_zoom(19) 
 
 
 if __name__ == "__main__":

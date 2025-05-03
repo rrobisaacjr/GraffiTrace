@@ -74,6 +74,7 @@ class App(customtkinter.CTk):
         self.scaling_optionemenu.grid(row=9, column=0, padx=20, pady=(10, 20))
 
         # Create input frame
+        self.project_directory = None
         self.initial_frame = InitialFrame(
             self, corner_radius=10
         )  # Use the imported InitialFrame
@@ -155,6 +156,8 @@ class App(customtkinter.CTk):
             )
             return
 
+        self.project_directory = project_directory
+        
         # Call the function from data_preprocessing.py
         data_preprocessing.run_data_preprocessing(project_directory)
 
@@ -175,7 +178,7 @@ class App(customtkinter.CTk):
         print("Proceeding to report generation...")
         
         if self.report_frame is None:
-            self.report_frame = ReportFrame(self)
+            self.report_frame = ReportFrame(self, self.project_directory)
         self.report_frame.grid(row=0, column=1, padx=20, pady=(20, 20), sticky="nsew")
         self.report_generation_frame.destroy()
         self.proceed_button_frame.destroy()
