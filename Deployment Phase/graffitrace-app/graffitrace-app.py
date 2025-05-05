@@ -183,7 +183,7 @@ class App(customtkinter.CTk):
         self.button_frame.destroy()
 
         # Show the report generation label with "ongoing" message
-        self.report_generation_label.configure(text="Data preprocessing ongoing...")
+        self.report_generation_label.configure(text="Data preprocessing ongoing... (1/2)")
         self.report_generation_frame.grid(pady=20)  # Show the frame
         self.proceed_button_frame.grid_remove()  # Ensure proceed button is hidden
 
@@ -203,7 +203,18 @@ class App(customtkinter.CTk):
         try:
             data_preprocessing.run_data_preprocessing(project_directory)
             # Call detect_images.py here
-            self.after(0, lambda: self.report_generation_label.configure(text="Image detection ongoing...")) #update label
+            self.after(
+                0,
+                lambda: self.update_loading_frame(
+                    "Image detection (2/2)"
+                ),
+            )  # Update loading frame
+            self.after(
+                0,
+                lambda: self.report_generation_label.configure(
+                    text="Image detection ongoing... (2/2)"
+                ),
+            )  # update label
             self.run_detection(project_directory, model_path, self.target_place)
             # Use after() to schedule the GUI update on the main thread
             self.after(
@@ -253,6 +264,9 @@ class App(customtkinter.CTk):
         self.report_generation_label.configure(
             text="Data preprocessing complete.  Proceed with report generation."
         )
+        self.update_loading_frame(
+            "Data preprocessing complete."
+        )  # Update loading frame as well.
         self.report_generation_frame.grid(pady=(20, 0))
         self.proceed_button_frame.grid()  # Show the proceed button
         self.destroy_loading_frame()
@@ -289,7 +303,7 @@ class App(customtkinter.CTk):
         )
         self.report_generation_label = customtkinter.CTkLabel(
             self.report_generation_frame,
-            text="Data preprocessing complete.  Proceed with report generation.",
+            text="Data preprocessing and Image Detection complete. Proceed with report generation.",
             font=customtkinter.CTkFont(size=18),
         )
         self.report_generation_label.pack(
@@ -339,7 +353,7 @@ class App(customtkinter.CTk):
     def sidebar_button_event(self):
         print("sidebar_button click")
 
-    def create_loading_frame(self):
+    def create_loading_frame(self, message="Image Preprocessing... (1/2)"):
         """Creates a frame with a progress bar and a label for showing loading status."""
         self.loading_frame = customtkinter.CTkFrame(
             self.report_generation_frame, fg_color="transparent"
@@ -350,7 +364,7 @@ class App(customtkinter.CTk):
 
         self.loading_label = customtkinter.CTkLabel(
             self.loading_frame,
-            text="Data preprocessing ongoing...",
+            text=message,  # Use the provided message
             text_color="grey",
         )
         self.loading_label.pack(side="left", padx=0, pady=0, anchor="w")
@@ -369,6 +383,15 @@ class App(customtkinter.CTk):
         if self.loading_frame:
             self.loading_frame.destroy()
             self.loading_frame = None
+    
+    def update_loading_frame(self, message):
+        """Updates the text of the loading label.  Creates the frame if it doesn't exist."""
+        if not self.loading_frame:
+            self.create_loading_frame(
+                message
+            )  # Create with the message if it doesn't exist
+        else:
+            self.loading_label.configure(text=message)
 
 
 if __name__ == "__main__":
