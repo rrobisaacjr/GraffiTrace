@@ -96,7 +96,7 @@ class ReportFrame(customtkinter.CTkFrame):
         self.print_button.pack(fill="both", expand=False, pady=(10, 18), padx=15)
 
         # Labels for the details
-        label_texts = ["Graffiti Name", "Source File Name", "Place", "Latitude", "Longitude", "Confidence Level"]
+        label_texts = ["Graffiti ID", "Source File Name", "Place", "Latitude", "Longitude", "Confidence Level"]
         self.detail_labels = []
         self.detail_values = []
 
@@ -116,7 +116,7 @@ class ReportFrame(customtkinter.CTkFrame):
         
     def load_data(self):
         """Loads the data"""
-        csv_path = os.path.join(self.project_directory, "results", "result.csv")
+        csv_path = os.path.join(self.project_directory, "results", "results.csv")
         
         print(csv_path)
         
@@ -275,7 +275,7 @@ class ReportFrame(customtkinter.CTkFrame):
             graffiti_name (str): The name of the graffiti.
         """
         image_folder_path = os.path.join(self.project_directory, "results", "graffiti_instances")  # corrected path
-        image_path = os.path.join(image_folder_path, graffiti_name + ".png")  # Assuming .png, adjust as needed
+        image_path = os.path.join(image_folder_path, graffiti_name + ".jpg")
 
         if os.path.exists(image_path):
             try:

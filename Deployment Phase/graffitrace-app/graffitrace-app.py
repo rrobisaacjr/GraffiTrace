@@ -9,6 +9,9 @@ from PIL import Image
 import threading
 import warnings
 import subprocess  # Import the subprocess module
+# Import the detect_images.py functionality
+# Assuming detect_images.py is in the same directory, otherwise, you need to adjust the import.
+import detect_images
 
 # Suppress Warnings
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -173,6 +176,7 @@ class App(customtkinter.CTk):
 
         self.project_directory = project_directory
         self.model_path = model_path  # Store the model path
+        self.target_place = name_of_place # Store target place
 
         # Destroy input frames before starting preprocessing
         self.initial_frame.destroy()
@@ -199,7 +203,8 @@ class App(customtkinter.CTk):
         try:
             data_preprocessing.run_data_preprocessing(project_directory)
             # Call detect_images.py here
-            self.run_detection(project_directory, model_path)
+            self.after(0, lambda: self.report_generation_label.configure(text="Image detection ongoing...")) #update label
+            self.run_detection(project_directory, model_path, self.target_place)
             # Use after() to schedule the GUI update on the main thread
             self.after(
                 0,
@@ -219,46 +224,25 @@ class App(customtkinter.CTk):
                 self.reset_gui_after_error,
             )  # Reset GUI state after error
 
-    def run_detection(self, project_directory, model_path):
+    def run_detection(self, project_directory, model_path, target_place):
         """
         Runs the detect_images.py script.
 
         Args:
             project_directory (str): The project directory.
             model_path (str): The path to the model file.
+            target_place (str): the target place
         """
         try:
-            # Construct the command to run detect_images.py
-            command = [
-                "python",
-                "detect_images.py",  #  Make sure this is the correct script name
-                "--project_directory",
-                project_directory,
-                "--model_path",
-                model_path,
-            ]
-            print(f"Running detection with command: {command}")  # Debugging
-            # Use subprocess.run to execute the command
-            result = subprocess.run(
-                command,
-                check=True,  # Raise an exception for non-zero exit codes
-                capture_output=True,  # Capture standard output and error
-                text=True,  # Decode output as text
-            )
-            # Print the output from detect_images.py
-            print("Detection script output:", result.stdout)
-            print("Detection script error:", result.stderr) #error
-        except subprocess.CalledProcessError as e:
-            # Handle errors from subprocess.run
-            print(f"Error running detection script: {e}")
-            print(f"Output: {e.output}")
-            print(f"Return Code: {e.returncode}")
+            # Run the detection using the function from detect_images.py
+            detect_images.run_graffiti_detection(project_directory, model_path, target_place)
+
+        except Exception as e:
+            print(f"Error running detection: {e}")
             tkinter.messagebox.showerror(
                 "Detection Error",
-                f"Failed to run image detection: {e}\n"
-                f"Check the console for more details.  Return Code: {e.returncode}",
+                f"Failed to run image detection: {e}",
             )
-            # Consider if you want to reset the GUI here
             self.after(0, self.reset_gui_after_error)
 
     def update_gui_after_preprocessing(self):
