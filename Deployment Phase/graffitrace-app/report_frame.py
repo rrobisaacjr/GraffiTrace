@@ -132,7 +132,7 @@ class ReportFrame(customtkinter.CTkFrame):
         try:
             self.graffiti_data = pd.read_csv(csv_path)
             # Ensure the necessary columns exist
-            required_columns = ["graffiti_id", "source_file_name", "place", "latitude", "longitude", "confidence_level"]
+            required_columns = ["graffiti_id", "source_file_name", "place", "latitude", "longitude", "num_graffiti_instances"]
             if not all(col in self.graffiti_data.columns for col in required_columns):
                 raise ValueError(f"CSV file is missing one or more required columns: {', '.join(required_columns)}")
 
@@ -233,7 +233,7 @@ class ReportFrame(customtkinter.CTkFrame):
         
 
         # Re-create labels for the details
-        label_texts = ["Graffiti Name", "Source File Name", "Place", "Latitude", "Longitude", "Confidence Level"]
+        label_texts = ["Graffiti Name", "Source File Name", "Place", "Latitude", "Longitude", "Graffiti Instances"]
         self.detail_labels = []
         self.detail_values = []
         for i, text in enumerate(label_texts):
@@ -251,9 +251,9 @@ class ReportFrame(customtkinter.CTkFrame):
             place = self.graffiti_data.iloc[index]['place']
             latitude = self.graffiti_data.iloc[index]['latitude']
             longitude = self.graffiti_data.iloc[index]['longitude']
-            confidence_level = self.graffiti_data.iloc[index]['confidence_level']
+            num_graffiti_instances = self.graffiti_data.iloc[index]['num_graffiti_instances']
 
-            details = [graffiti_name, source_file_name, place, latitude, longitude, confidence_level]
+            details = [graffiti_name, source_file_name, place, latitude, longitude, num_graffiti_instances]
 
             for i, value in enumerate(details):
                 self.detail_values[i].configure(text=str(value))
