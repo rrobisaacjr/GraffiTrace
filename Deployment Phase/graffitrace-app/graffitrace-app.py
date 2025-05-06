@@ -6,6 +6,7 @@ from report_frame import ReportFrame
 import os
 import data_preprocessing
 from PIL import Image
+from PIL import ImageTk
 import threading
 import warnings
 import subprocess  # Import the subprocess module
@@ -30,6 +31,12 @@ class App(customtkinter.CTk):
         self.title("GraffiTrace: Graffiti Image Detection Geoplot Reporter")
         self.geometry(f"{1100}x620")
         self.resizable(False, False)
+        
+        # Load the custom icon
+        current_path = os.path.dirname(os.path.abspath(__file__))        
+        self.iconpath = ImageTk.PhotoImage(file=os.path.join(current_path,"assets","graffitrace_logo_3.png"))
+        self.wm_iconbitmap()
+        self.iconphoto(False, self.iconpath)
 
         # configure grid layout
         self.grid_columnconfigure(1, weight=1)
