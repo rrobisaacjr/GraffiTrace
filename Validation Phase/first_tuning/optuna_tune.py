@@ -13,8 +13,25 @@ import pickle
 import pandas as pd
 import json
 from optuna.storages import RDBStorage
+from detectron2.engine import HookBase
 
 register_datasets()
+
+class OptunaPruningHook(HookBase):
+    def __init__(self, trial, eval_period, evaluator, val_loader):
+        self.trial = trial
+        self.eval_period = eval_period
+        self.evaluator = evaluator
+        self.val_loader = val_loader
+
+    def after_step(self):
+        iter = self.trainer.iter
+        if iter % self.eval_period == 0 and iter != 0:
+            results = inference_on_dataset(self.trainer.model, self.val_loader, self.evaluator)
+            ap50 = results.get("bbox", {}).get("AP50", 0.0)
+            self.trial.report(ap50, step=iter)
+            if self.trial.should_prune():
+                raise optuna.exceptions.TrialPruned()
 
 def build_cfg(trial):
     cfg = get_cfg()
@@ -29,7 +46,7 @@ def build_cfg(trial):
     cfg.SOLVER.BASE_LR = trial.suggest_float("lr", 1e-5, 1e-3, log=True)
     cfg.SOLVER.IMS_PER_BATCH = trial.suggest_categorical("ims_per_batch", [2, 4])
     cfg.SOLVER.ACCUMULATE_GRAD_ITER = 1
-    cfg.SOLVER.MAX_ITER = trial.suggest_int("max_iter", 2000, 10000, step=1000)
+    cfg.SOLVER.MAX_ITER = trial.suggest_int("max_iter", 2000, 5000, step=1000)
     cfg.SOLVER.STEPS = (int(cfg.SOLVER.MAX_ITER * 0.6), int(cfg.SOLVER.MAX_ITER * 0.8))
     cfg.SOLVER.GAMMA = trial.suggest_float("gamma", 0.1, 0.9)
 
@@ -37,7 +54,7 @@ def build_cfg(trial):
     cfg.OUTPUT_DIR = f"./Validation Phase/first_tuning/optuna_output/{trial.number}"
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
 
-    # Save config hyperparams for this trial
+    # Save trial config
     trial_config_path = os.path.join(cfg.OUTPUT_DIR, "trial_config.json")
     with open(trial_config_path, "w") as f:
         json.dump({
@@ -53,20 +70,23 @@ def objective(trial):
     try:
         cfg = build_cfg(trial)
 
+        evaluator = COCOEvaluator("graffiti_validation", cfg, False, output_dir=cfg.OUTPUT_DIR)
+        val_loader = build_detection_test_loader(cfg, "graffiti_validation")
+
         trainer = DefaultTrainer(cfg)
+        trainer.register_hooks([OptunaPruningHook(trial, eval_period=500, evaluator=evaluator, val_loader=val_loader)])
         trainer.resume_or_load(resume=False)
         trainer.train()
 
-        evaluator = COCOEvaluator("graffiti_validation", cfg, False, output_dir=cfg.OUTPUT_DIR)
-        val_loader = build_detection_test_loader(cfg, "graffiti_validation")
         results = inference_on_dataset(trainer.model, val_loader, evaluator)
-
         if "bbox" in results:
             ap50 = results["bbox"].get("AP50", 0.0)
             ap = results["bbox"].get("AP", 0.0)
             ar100 = results["bbox"].get("AR@100", 0.0)
             return (ap50 + ap + ar100) / 3
 
+    except optuna.exceptions.TrialPruned:
+        print(f"⚠️ Trial {trial.number} was pruned.")
     except RuntimeError as e:
         if "CUDA out of memory" in str(e):
             print(f"⚠️ Trial {trial.number} failed due to OOM.")
@@ -75,7 +95,7 @@ def objective(trial):
     except Exception as e:
         print(f"❌ Unexpected error in trial {trial.number}: {e}")
 
-    return 0.0  # Trial failed — return minimum score
+    return 0.0
 
 if __name__ == "__main__":
     storage = RDBStorage("sqlite:///optuna_study.db")
@@ -99,7 +119,6 @@ if __name__ == "__main__":
     } for t in study.trials])
     df.to_csv("optuna_trials_results.csv", index=False)
 
-    # Optional backup as pickle
     with open("optuna_study.pkl", "wb") as f:
         pickle.dump(study, f)
 
