@@ -9,3 +9,4 @@ Validation Phase/output_1/instances_predictions.pth
 Validation Phase/second_validation/eval_output/vis_preds/*
 Validation Phase/second_validation/eval_output/*.pth
 Validation Phase/second_validation/*.pth
+*.pth

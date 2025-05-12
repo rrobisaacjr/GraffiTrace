@@ -1,5 +1,3 @@
-# optuna_tune.py
-
 import os
 import optuna
 import torch
@@ -15,6 +13,10 @@ import json
 from optuna.storages import RDBStorage
 from detectron2.engine import HookBase
 
+# Constants
+CSV_LOG_PATH = "optuna_trials_results.csv"
+
+# Register datasets (if needed)
 register_datasets()
 
 class OptunaPruningHook(HookBase):
@@ -50,7 +52,7 @@ def build_cfg(trial):
     cfg.SOLVER.STEPS = (int(cfg.SOLVER.MAX_ITER * 0.6), int(cfg.SOLVER.MAX_ITER * 0.8))
     cfg.SOLVER.GAMMA = trial.suggest_float("gamma", 0.1, 0.9)
 
-    cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-Detection/faster_rcnn_R_101_FPN_3x.yaml")
+    cfg.MODEL.WEIGHTS = os.path.join(os.path.dirname(__file__), "model_final.pth")
     cfg.OUTPUT_DIR = f"./Validation Phase/first_tuning/optuna_output/{trial.number}"
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
 
@@ -79,11 +81,37 @@ def objective(trial):
         trainer.train()
 
         results = inference_on_dataset(trainer.model, val_loader, evaluator)
+        
         if "bbox" in results:
             ap50 = results["bbox"].get("AP50", 0.0)
             ap = results["bbox"].get("AP", 0.0)
             ar100 = results["bbox"].get("AR@100", 0.0)
-            return (ap50 + ap + ar100) / 3
+
+            trial.set_user_attr("AP50", ap50)
+            trial.set_user_attr("AP", ap)
+            trial.set_user_attr("AR100", ar100)
+
+            score = (ap50 + ap + ar100) / 3
+
+            log_data = {
+                "trial": trial.number,
+                "lr": cfg.SOLVER.BASE_LR,
+                "ims_per_batch": cfg.SOLVER.IMS_PER_BATCH,
+                "max_iter": cfg.SOLVER.MAX_ITER,
+                "gamma": cfg.SOLVER.GAMMA,
+                "AP50": ap50,
+                "AP": ap,
+                "AR100": ar100,
+                "score": score
+            }
+
+            df = pd.DataFrame([log_data])
+            if not os.path.exists(CSV_LOG_PATH):
+                df.to_csv(CSV_LOG_PATH, index=False)
+            else:
+                df.to_csv(CSV_LOG_PATH, mode='a', header=False, index=False)
+
+            return score
 
     except optuna.exceptions.TrialPruned:
         print(f"⚠️ Trial {trial.number} was pruned.")
@@ -111,15 +139,7 @@ if __name__ == "__main__":
     print("Best trial:")
     print(study.best_trial)
 
-    # Save all trials to CSV
-    df = pd.DataFrame([{
-        "trial": t.number,
-        **t.params,
-        "score": t.value
-    } for t in study.trials])
-    df.to_csv("optuna_trials_results.csv", index=False)
-
     with open("optuna_study.pkl", "wb") as f:
         pickle.dump(study, f)
 
-    print("✅ Saved all trial results to CSV and pickle.")
+    print("✅ Saved Optuna study.")
