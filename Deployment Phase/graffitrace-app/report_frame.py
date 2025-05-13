@@ -15,6 +15,8 @@ import pandas as pd
 import random
 import warnings  # Import warnings
 
+from generate_pdf import generate_pdf_report
+
 # Suppress Warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -70,20 +72,20 @@ class ReportFrame(customtkinter.CTkFrame):
         current_path = os.path.dirname(os.path.abspath(__file__))
         random_icon_path = os.path.join(current_path, "assets", "random.png")
         info_icon_path = os.path.join(current_path, "assets", "info.png")
-        print_icon_path = os.path.join(current_path, "assets", "print.png")
+        export_icon_path = os.path.join(current_path, "assets", "print.png")
 
         try:
             self.random_image = Image.open(random_icon_path).resize((30, 30), Image.LANCZOS)
             self.random_icon = ImageTk.PhotoImage(self.random_image)
             self.info_image = Image.open(info_icon_path).resize((30, 30), Image.LANCZOS)
             self.info_icon = ImageTk.PhotoImage(self.info_image)
-            self.print_image = Image.open(print_icon_path).resize((30, 30), Image.LANCZOS)
-            self.print_icon = ImageTk.PhotoImage(self.print_image)
+            self.export_image = Image.open(export_icon_path).resize((30, 30), Image.LANCZOS)
+            self.export_icon = ImageTk.PhotoImage(self.export_image)
         except Exception as e:
             print(f"Error loading icon: {e}.  Using default marker.")
-            self.random_icon = None  # Ensure None in case of error
-            self.info_icon = None  # Ensure None in case of error
-            self.print_icon = None  # Ensure None in case of error
+            self.random_icon = None 
+            self.info_icon = None  
+            self.export_icon = None
 
         # Create three buttons inside the right frame
         self.random_button = customtkinter.CTkButton(self.right_frame, text="", corner_radius=8, image=self.random_icon,
@@ -91,8 +93,10 @@ class ReportFrame(customtkinter.CTkFrame):
         self.random_button.pack(fill="both", expand=False, pady=(10, 10), padx=15)  # Use pack, fill horizontally, no expansion
         self.info_button = customtkinter.CTkButton(self.right_frame, text="", corner_radius=8, image=self.info_icon, width=50, height=60, fg_color="transparent", command=self.on_info_button_click)
         self.info_button.pack(fill="both", expand=False, pady=5, padx=15)
-        self.print_button = customtkinter.CTkButton(self.right_frame, text="", corner_radius=8, image=self.print_icon, width=50, height=60, fg_color="transparent")
-        self.print_button.pack(fill="both", expand=False, pady=(10, 18), padx=15)
+        self.export_button = customtkinter.CTkButton(self.right_frame, text="", corner_radius=8, image=self.export_icon, # Changed to export button
+                                                   width=50, height=60, fg_color="transparent",
+                                                   command=self.on_export_button_click)
+        self.export_button.pack(fill="both", expand=False, pady=(10, 18), padx=15)
 
         # Labels for the details
         label_texts = ["Graffiti ID", "Source File Name", "Place", "Latitude", "Longitude", "Confidence Level"]
@@ -448,8 +452,6 @@ class ReportFrame(customtkinter.CTkFrame):
                                                                 anchor="w") 
                         location_label.pack(padx=10, pady=5, fill="x")
 
-                        
-
             # Make the window resizable
             info_window.resizable(True, True)
             # Center the popup window on the screen
@@ -463,7 +465,32 @@ class ReportFrame(customtkinter.CTkFrame):
 
         except Exception as e:
             tkinter.messagebox.showerror("Error", f"Error displaying information: {e}")
+    
+    def on_export_button_click(self):
+        """
+        Generates a PDF report and saves the CSV file.
+        """
+        csv_path = os.path.join(self.project_directory, "results", "results.csv")
+        pdf_path = os.path.join(self.project_directory, "results", "report.pdf")
 
+        if not os.path.exists(csv_path):
+            tkinter.messagebox.showerror("Error", "results.csv not found.")
+            return
+
+        try:
+            # Generate PDF Report
+            generate_pdf_report(pdf_path, self.project_directory, self.graffiti_data)
+
+            # Optionally, save the CSV (it's already in the results folder, but we can copy it if needed)
+            # For now, I'll assume it's already there.  If you want to *copy* it, uncomment below and modify as needed.
+            # import shutil
+            # shutil.copy(csv_path, os.path.join(self.project_directory, "results", "results.csv"))
+
+            tkinter.messagebox.showinfo("Success",
+                                        f"Report (report.pdf) and data (results.csv) saved to {os.path.join(self.project_directory, 'results')}")
+
+        except Exception as e:
+            tkinter.messagebox.showerror("Error", f"Error generating report: {e}")
 
 
 if __name__ == "__main__":
