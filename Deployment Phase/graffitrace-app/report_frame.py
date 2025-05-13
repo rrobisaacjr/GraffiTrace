@@ -89,7 +89,7 @@ class ReportFrame(customtkinter.CTkFrame):
         self.random_button = customtkinter.CTkButton(self.right_frame, text="", corner_radius=8, image=self.random_icon,
                                                     command=self.on_random_button_click, width=50, height=60, fg_color="transparent")
         self.random_button.pack(fill="both", expand=False, pady=(10, 10), padx=15)  # Use pack, fill horizontally, no expansion
-        self.info_button = customtkinter.CTkButton(self.right_frame, text="", corner_radius=8, image=self.info_icon, width=50, height=60, fg_color="transparent")
+        self.info_button = customtkinter.CTkButton(self.right_frame, text="", corner_radius=8, image=self.info_icon, width=50, height=60, fg_color="transparent", command=self.on_info_button_click)
         self.info_button.pack(fill="both", expand=False, pady=5, padx=15)
         self.print_button = customtkinter.CTkButton(self.right_frame, text="", corner_radius=8, image=self.print_icon, width=50, height=60, fg_color="transparent")
         self.print_button.pack(fill="both", expand=False, pady=(10, 18), padx=15)
@@ -382,6 +382,88 @@ class ReportFrame(customtkinter.CTkFrame):
         latitude, longitude = self.coordinates[random_index]
         self.map_widget.set_position(latitude, longitude)
         self.map_widget.set_zoom(19)
+    
+    def on_info_button_click(self):
+        """
+        Opens a new window with a scrollable text area displaying details
+        from the graffiti data.
+        """
+        try:
+            info_window = customtkinter.CTkToplevel(self)
+            info_window.title("Graffiti Information")
+
+            scrollable_frame = customtkinter.CTkScrollableFrame(info_window, width=600, height=450)
+            scrollable_frame.pack(padx=10, pady=10, fill="both", expand=True)
+            scrollable_frame.grid_columnconfigure(0, weight=1)
+
+            if self.graffiti_data.empty:
+                no_data_label = customtkinter.CTkLabel(scrollable_frame, text="No graffiti data available.", anchor="center")
+                no_data_label.pack(padx=20, pady=20, fill="both", expand=True)
+            else:
+                # Target Area
+                target_area_frame = customtkinter.CTkFrame(scrollable_frame, corner_radius=10, fg_color="#383838")
+                target_area_frame.pack(padx=20, pady=(20, 5), fill="x", anchor="n")
+                target_area_label = customtkinter.CTkLabel(target_area_frame,
+                                                            text=f"Target Area: {self.graffiti_data['place'].iloc[0] if not self.graffiti_data['place'].empty else 'N/A'}",
+                                                            anchor="w")
+                target_area_label.pack(padx=10, pady=10, fill="x")
+
+                # Total Instances
+                total_instances_frame = customtkinter.CTkFrame(scrollable_frame, corner_radius=10, fg_color="#383838")
+                total_instances_frame.pack(padx=20, pady=(5, 5), fill="x", anchor="n")
+                total_instances_label = customtkinter.CTkLabel(total_instances_frame,
+                                                                text=f"Total No of Graffiti Instances in the Area: {len(self.graffiti_data)}",
+                                                                anchor="w")
+                total_instances_label.pack(padx=10, pady=10, fill="x")
+
+                # Graffiti Rich Locations
+                graffiti_rich_frame = customtkinter.CTkFrame(scrollable_frame, corner_radius=10, fg_color="#383838")
+                graffiti_rich_frame.pack(padx=20, pady=(5, 20), fill="x", anchor="n")
+                graffiti_rich_title_label = customtkinter.CTkLabel(graffiti_rich_frame,
+                                                                    text="Graffiti-Rich Locations in the Area:",
+                                                                    anchor="w")
+                graffiti_rich_title_label.pack(padx=10, pady=(10, 0), fill="x")
+
+                graffiti_rich_locations = self.graffiti_data[self.graffiti_data['num_graffiti_instances'] >= 5]
+                if graffiti_rich_locations.empty:
+                    no_rich_label = customtkinter.CTkLabel(graffiti_rich_frame,
+                                                            text="No locations with 5 or more instances.",
+                                                            anchor="w")
+                    no_rich_label.pack(padx=10, pady=(0, 10), fill="x")
+                else:
+                    for i, (_, row) in enumerate(graffiti_rich_locations.iterrows()): # added enumerate
+                        location_frame = customtkinter.CTkFrame(graffiti_rich_frame, corner_radius=5,
+                                                                fg_color="#454444")
+                        if i == len(graffiti_rich_locations) - 1: #check if it is the last row
+                            location_frame.pack(padx=10, pady=(5, 10), fill="x")
+                        else:
+                            location_frame.pack(padx=10, pady=5, fill="x")
+                            
+                        graffiti_id = row['graffiti_id']
+                        latitude = row['latitude']
+                        longitude = row['longitude']
+                        instances = row['num_graffiti_instances']
+                        location_label = customtkinter.CTkLabel(location_frame,
+                                                                text=f"Graffiti {graffiti_id} - ({latitude:.4f}, {longitude:.4f}) - {instances} instances",
+                                                                anchor="w") 
+                        location_label.pack(padx=10, pady=5, fill="x")
+
+                        
+
+            # Make the window resizable
+            info_window.resizable(True, True)
+            # Center the popup window on the screen
+            screen_width = info_window.winfo_screenwidth()
+            screen_height = info_window.winfo_screenheight()
+            popup_width = 600
+            popup_height = 400
+            x = (screen_width / 2) - (popup_width / 2)
+            y = (screen_height / 2) - (popup_height / 2)
+            info_window.geometry(f"{popup_width}x{popup_height}+{int(x)}+{int(y)}")
+
+        except Exception as e:
+            tkinter.messagebox.showerror("Error", f"Error displaying information: {e}")
+
 
 
 if __name__ == "__main__":
