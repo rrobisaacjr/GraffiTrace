@@ -50,11 +50,31 @@ class App(customtkinter.CTk):
         )
         self.sidebar_frame.grid(row=0, column=0, rowspan=3, sticky="nsew")
         self.sidebar_frame.grid_rowconfigure(5, weight=1)
-        self.logo_label = customtkinter.CTkLabel(
-            self.sidebar_frame,
-            text="GraffiTrace",
-            font=customtkinter.CTkFont(size=20, weight="bold"),
-        )
+        
+        # Load the logo image
+        try:
+            logo_image_path = os.path.join(current_path, "assets", "White_Text.png")
+            original_image = Image.open(logo_image_path)
+            # Calculate scaled dimensions
+            scale_factor = 0.030  # Adjust this to change the scale
+            new_width = int(original_image.width * scale_factor)
+            new_height = int(original_image.height * scale_factor)
+            scaled_image = original_image.resize((new_width, new_height), Image.LANCZOS)
+            self.logo_image = ImageTk.PhotoImage(scaled_image)
+            self.logo_label = customtkinter.CTkLabel(
+                self.sidebar_frame, image=self.logo_image, text=""
+            )  # Important: Keep text="" to avoid issues.
+            self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
+        except Exception as e:
+            print(f"Error loading logo: {e}")
+            # If the image fails to load, fall back to text
+            self.logo_label = customtkinter.CTkLabel(
+                self.sidebar_frame,
+                text="GraffiTrace",
+                font=customtkinter.CTkFont(size=20, weight="bold"),
+            )
+            self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
+
         self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
         self.sidebar_button_1 = customtkinter.CTkButton(
             self.sidebar_frame, text="Settings", command=self.sidebar_button_event

@@ -37,7 +37,10 @@ class InitialFrame(customtkinter.CTkFrame):
         self.model_path_label = customtkinter.CTkLabel(self, text="Model File (.pth):", anchor="w")
         self.model_path_label.grid(row=3, column=0, padx=(20, 0), pady=(10, 0), sticky="ew")
         self.model_path_entry = customtkinter.CTkEntry(self)
+        default_model_path = r"C:\Users\MB-PC\Downloads\GraffiTrace\Validation Phase\first_tuning\optuna_output\0\model_final.pth"
+        self.model_path_entry.insert(0, default_model_path)
         self.model_path_entry.grid(row=3, column=1, padx=10, pady=(10, 0), sticky="ew")
+        self.model_path_entry.configure(state="readonly")
         self.model_path_button = customtkinter.CTkButton(self, text="Browse", command=self.select_model_path, width=80)
         self.model_path_button.grid(row=3, column=2, padx=(0, 20), pady=(10, 0), sticky="e")
 
@@ -310,9 +313,13 @@ class InitialFrame(customtkinter.CTkFrame):
         """
         model_path = filedialog.askopenfilename(filetypes=[("Model Files", "*.pth")])
         if model_path:
+            self.model_path_entry.configure(state="normal") # Make it editable
             self.model_path_entry.delete(0, "end")
             self.model_path_entry.insert(0, model_path)
             print(f"Selected Model Path: {model_path}")
+            self.model_path_entry.configure(state="readonly") # Then make it readonly again
+        else:
+            self.model_path_entry.configure(state="readonly") # keep it readonly if no file is selected
 
     def get_inputs(self):
         """
