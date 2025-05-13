@@ -20,14 +20,14 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class ReportFrame(customtkinter.CTkFrame):
-    def __init__(self, master, project_directory, **kwargs): # Added project_directory to init
+    def __init__(self, master, project_directory, **kwargs):  # Added project_directory to init
         super().__init__(master, **kwargs)
 
-        self.project_directory = project_directory # Store the project directory
+        self.project_directory = project_directory  # Store the project directory
         self.grid_columnconfigure(0, weight=1)  # Configure the column to expand
         self.grid_rowconfigure(0, weight=1)  # Make the first row expandable for the map
         self.grid_rowconfigure(1, weight=1)  # Make the second row expandable
-        
+
         print(self.project_directory)
 
         # Create the TkinterMapView widget to display the map
@@ -48,17 +48,16 @@ class ReportFrame(customtkinter.CTkFrame):
         # Image placeholder
         self.image_placeholder_frame = customtkinter.CTkFrame(self.lower_frame, width=200, height=200, fg_color="#383838")  # Adjust size as needed
         self.image_placeholder_frame.grid(row=0, column=0, padx=(0, 20), pady=0, sticky="nsew")
-        # self.image_placeholder_frame.grid_configure(padx=100)
         self.image_placeholder_label = customtkinter.CTkLabel(self.image_placeholder_frame, text_color="white", text="", width=225)
         self.image_placeholder_label.pack(fill="both", expand=True)
-        self.image_label = None #keep track of the image label
+        self.image_label = None  # keep track of the image label
 
         # Details frame
         self.details_frame = customtkinter.CTkFrame(self.lower_frame, fg_color="transparent")
         self.details_frame.grid(row=0, column=1, padx=0, pady=(0, 10), sticky="w")
         self.details_frame.grid_columnconfigure(0, weight=1)
         self.details_frame.grid_columnconfigure(1, weight=2)
-        
+
         # New frame on the right. Moved to the lower frame.
         self.right_frame = customtkinter.CTkFrame(self.lower_frame, fg_color="transparent", corner_radius=10)
         self.right_frame.grid(row=0, column=2, padx=(20, 0), pady=(0, 30), sticky="nsew")
@@ -110,16 +109,16 @@ class ReportFrame(customtkinter.CTkFrame):
 
         self.coordinates = []
         self.coordinates = []
-        self.graffiti_data = [] #added
-        self.load_data() # Load data in init
+        self.graffiti_data = []  # added
+        self.load_data()  # Load data in init
         self.markers = []
-        
+
     def load_data(self):
         """Loads the data"""
         csv_path = os.path.join(self.project_directory, "results", "results.csv")
-        
+
         print(csv_path)
-        
+
         self.load_graffiti_data(csv_path)
 
     def load_graffiti_data(self, csv_path):
@@ -144,7 +143,7 @@ class ReportFrame(customtkinter.CTkFrame):
             self.graffiti_data.dropna(subset=['latitude', 'longitude'], inplace=True)
 
             self.coordinates = list(zip(self.graffiti_data['latitude'], self.graffiti_data['longitude']))
-            
+
             self.create_map()
 
         except FileNotFoundError:
@@ -230,7 +229,6 @@ class ReportFrame(customtkinter.CTkFrame):
         self.details_frame.grid_rowconfigure(3, weight=1)
         self.details_frame.grid_rowconfigure(4, weight=1)
         self.details_frame.grid_rowconfigure(5, weight=1)
-        
 
         # Re-create labels for the details
         label_texts = ["Graffiti Name", "Source File Name", "Place", "Latitude", "Longitude", "Graffiti Instances"]
@@ -292,6 +290,10 @@ class ReportFrame(customtkinter.CTkFrame):
                 image_label.image = photo
                 image_label.grid(row=0, column=0, padx=(0, 20), pady=0, sticky="nsew")  # Place the image
 
+                # Make the image label clickable
+                image_label.bind("<Button-1>", lambda event, path=image_path: self.on_image_click(event, path))  # Pass the image path
+                image_label.configure(cursor="hand2")  # Change cursor to a pointer
+
                 # Destroy the placeholder frame
                 if self.image_placeholder_frame:  # Check if it exists before destroying
                     self.image_placeholder_frame.destroy()
@@ -314,7 +316,7 @@ class ReportFrame(customtkinter.CTkFrame):
         """
         if self.image_label:
             self.image_label.destroy()
-            self.image_label = None
+        self.image_label = None
 
         # Create a new placeholder frame.
         self.image_placeholder_frame = customtkinter.CTkFrame(self.lower_frame, width=300, height=200, fg_color="#383838",
@@ -324,7 +326,47 @@ class ReportFrame(customtkinter.CTkFrame):
         self.image_placeholder_label.pack(fill="both", expand=True)
         self.image_placeholder_label.configure(text="")  # Clear any previous text.
 
-    
+    def on_image_click(self, event, image_path):
+        """
+        Opens the full-size image in a new popup window.
+
+        Args:
+            event (tkinter.Event): The click event.
+            image_path (str): The path to the image.
+        """
+        try:
+            # Create a new top-level window (popup)
+            popup_window = customtkinter.CTkToplevel(self)
+            popup_window.title("Graffiti Image Viewer")
+
+            # Open the image using PIL
+            img = Image.open(image_path)
+            # Calculate the aspect ratio to fit the image within a maximum size
+            max_width = 800  # You can adjust these values
+            max_height = 800
+            img.thumbnail((max_width, max_height), Image.LANCZOS)  # Resize while maintaining aspect ratio
+            photo = ImageTk.PhotoImage(img)
+
+            # Create a label to display the image in the popup
+            image_label = customtkinter.CTkLabel(popup_window, image=photo, text="")
+            image_label.image = photo  # Keep a reference to the PhotoImage to prevent it from being garbage collected
+            image_label.pack(padx=10, pady=10, fill="both", expand=True)  # Use pack or grid as needed
+
+            # Make the popup window resizable
+            popup_window.resizable(True, True)
+
+            # Center the popup window on the screen
+            screen_width = popup_window.winfo_screenwidth()
+            screen_height = popup_window.winfo_screenheight()
+            popup_width = img.width if img.width < max_width else max_width
+            popup_height = img.height if img.height < max_height else max_height
+            x = (screen_width / 2) - (popup_width / 2)
+            y = (screen_height / 2) - (popup_height / 2)
+            popup_window.geometry(f"{popup_width}x{popup_height}+{int(x)}+{int(y)}")
+
+        except Exception as e:
+            tkinter.messagebox.showerror("Error", f"Error opening image: {e}")
+
     def on_random_button_click(self):
         """
         Selects a random graffiti entry, updates the details frame, and zooms the map.
@@ -339,7 +381,7 @@ class ReportFrame(customtkinter.CTkFrame):
         # Zoom to the selected marker's position.
         latitude, longitude = self.coordinates[random_index]
         self.map_widget.set_position(latitude, longitude)
-        self.map_widget.set_zoom(19) 
+        self.map_widget.set_zoom(19)
 
 
 if __name__ == "__main__":
@@ -347,8 +389,8 @@ if __name__ == "__main__":
     root = customtkinter.CTk()
     root.geometry("800x600")
     # Example Usage
-    test_dir = r"C:\Users\MB-PC\Downloads\Test" #hardcoded
+    test_dir = r"C:\Users\MB-PC\Downloads\Test"  # hardcoded
     report_frame = ReportFrame(root, test_dir)  # Pass the directory
     report_frame.pack(fill="both", expand=True, padx=20, pady=20)
-    report_frame.create_map() #create map
+    report_frame.create_map()  # create map
     root.mainloop()
