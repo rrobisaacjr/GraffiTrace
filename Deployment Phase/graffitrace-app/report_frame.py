@@ -347,7 +347,7 @@ if __name__ == "__main__":
     root = customtkinter.CTk()
     root.geometry("800x600")
     # Example Usage
-    test_dir = r"D:\Downloads\SP\Test" #hardcoded
+    test_dir = r"C:\Users\MB-PC\Downloads\Test" #hardcoded
     report_frame = ReportFrame(root, test_dir)  # Pass the directory
     report_frame.pack(fill="both", expand=True, padx=20, pady=20)
     report_frame.create_map() #create map
