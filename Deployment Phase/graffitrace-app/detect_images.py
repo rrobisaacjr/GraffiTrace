@@ -23,7 +23,7 @@ def setup_cfg(model_path):
     cfg.MODEL.WEIGHTS = model_path
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1
     cfg.MODEL.DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.3
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.55
     return cfg
 
 # Detect a single image
@@ -32,25 +32,33 @@ def detect_image(image_path, predictor, graffiti_metadata, instance_dir, csv_wri
     outputs = predictor(image)
     instances = outputs["instances"].to("cpu")
 
+    # Filter instances by confidence score
+    mask = instances.scores >= 0.55
+    filtered_instances = instances[mask]
+
     v = Visualizer(image[:, :, ::-1], metadata=graffiti_metadata, scale=1.2)
-    v = v.draw_instance_predictions(instances)
+    v = v.draw_instance_predictions(filtered_instances)  # Use filtered instances
     result_image = v.get_image()[:, :, ::-1]
 
-    result_image_path = os.path.join(instance_dir, f"{graffiti_id}.jpg")
-    cv2.imwrite(result_image_path, result_image)
-    print(f"\nResult saved to {result_image_path}")
+    num_graffiti_instances = len(filtered_instances) # Use filtered instances
 
-    num_graffiti_instances = len(instances)
-    print(f"\nGraffiti ID: {graffiti_id}")
-    print(f"Source File Name: {os.path.basename(image_path)}")
-    print(f"Place: {target_place}")
-    print(f"Latitude: {latitude}")
-    print(f"Longitude: {longitude}")
-    print(f"Num Graffiti Instances: {num_graffiti_instances}")
+    if num_graffiti_instances > 0: # Only save if graffiti is detected
+        result_image_path = os.path.join(instance_dir, f"{graffiti_id}.jpg")
+        cv2.imwrite(result_image_path, result_image)
+        print(f"\nResult saved to {result_image_path}")
+        print(f"\nGraffiti ID: {graffiti_id}")
+        print(f"Source File Name: {os.path.basename(image_path)}")
+        print(f"Place: {target_place}")
+        print(f"Latitude: {latitude}")
+        print(f"Longitude: {longitude}")
+        print(f"Num Graffiti Instances: {num_graffiti_instances}")
 
-    csv_writer.writerow([
-        graffiti_id, os.path.basename(image_path), target_place, latitude, longitude, num_graffiti_instances
-    ])
+        csv_writer.writerow([
+            graffiti_id, os.path.basename(image_path), target_place, latitude, longitude, num_graffiti_instances
+        ])
+    else:
+        print(f"\nNo graffiti detected in {os.path.basename(image_path)}")
+    return num_graffiti_instances #return the number of instances
 
 # Process all images
 def detect_images_in_directory(image_dir, preprocessed_csv, output_dir, instance_dir, model_path, target_place):
@@ -74,12 +82,15 @@ def detect_images_in_directory(image_dir, preprocessed_csv, output_dir, instance
                 print(f"Warning: Image file not found: {image_path}")
                 continue
 
-            detect_image(
+            num_graffiti_instances = detect_image( # added num_graffiti_instances
                 image_path, predictor, MetadataCatalog.get("graffiti_train"),
                 instance_dir, csv_writer, f"Graffiti {graffiti_id:05}",
                 latitude, longitude, target_place
             )
-            graffiti_id += 1
+            if num_graffiti_instances > 0: #increment only if graffiti is detected
+                graffiti_id += 1
+
+
 
 # Main callable function
 def run_graffiti_detection(project_directory, model_path, target_place):
@@ -98,8 +109,7 @@ def run_graffiti_detection(project_directory, model_path, target_place):
 
 # Example call
 if __name__ == "__main__":
-    run_graffiti_detection(
-        project_directory="D:/Downloads/SP/Test",
-        model_path="D:/Downloads/SP/Test/model_final.pth",
-        target_place="Cebu City, Cebu"
-    )
+    project_directory = "C:/Users/MB-PC/Downloads/Test"
+    model_path = "C:/Users/MB-PC/Downloads/Test/model_final (1).pth"
+    target_place = "Carlos P. Garcia Ave Taguig"
+    run_graffiti_detection(project_directory, model_path, target_place)
